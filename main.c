@@ -1,63 +1,48 @@
-#include<stdio.h>
-#include<string.h>
-
-#define MAX_LINE_LENGTH			256				//命令行长度，命令不能超过256字节
-
-
-//宏定义一些标准命令
-#define		led				"led"
-#define		lcd				"lcd"
-#define		pwm				"pwm"
-#define		CMD_NUM			3					//当前系统定义的命令数
+/*
+ * 文件名：	main
+ * 作者：	LoonYuan
+ * 描述：	基于九鼎s5pv210开发板，制作一个简易shell，主要用来学习
+ * 时间：	2017/12/22
+ */
 
 
-char g_cmdset[CMD_NUM][MAX_LINE_LENGTH];
 
 
-//初始化命令列表
-static void init_cmd_set(void)
+
+
+#include "shell.h"
+
+
+
+static void shell_init(void)
 {
-	memset(g_cmdset,0,sizeof(g_cmdset));
-	strcpy(g_cmdset[0],led);
-	strcpy(g_cmdset[1],lcd);
-	strcpy(g_cmdset[2],pwm);
-}
+	init_cmd_set();
+	uart_init();
+	puts("X210 simple shell:\n");
+} 
 
 
 
 
 int main(void)
 {
-	int i = 0;
-	char str[MAX_LINE_LENGTH];					//用来存放用户输入命令内容
 	
-	init_cmd_set();
+	char buf[MAX_LINE_LENGTH] = {0};	//用来存放用户输入命令内容
+
+	shell_init();
 	
 	while(1)
 	{
-		//打印命令行提示符，注意不能加换行
-		printf("astion:");
-		//清除str数组以存放新的字符串
-		memset(str,0,sizeof(str));
-		//shell第一步：获取用户输入命令
-		scanf("%s",str);
-		//shell第二步：解析用户输入命令
-		for(i=0; i<CMD_NUM; i++)
-		{
-			if(!strcmp(str,g_cmdset[i]))
-			{
-				//相等，找到命令就去执行这个命令对应的动作
-				printf("你输入一个合法的命令:%s\n",str);
-				break;
-			}
-		}	
-		if(i >= CMD_NUM)
-		{
-			//找遍都没找到这个命令
-			printf("%s不是一个内部命令\n",str);
-		}
+		//第一步：获取命令
+		puts("astion:");
+		memset(buf,0,sizeof(buf));
+		gets(buf);
 		
-		//shell第三步：处理用户输入命令
+		//第二步：解析命令
+		cmd_parser(buf);
+		
+		//第三步：执行命令
+		cmd_exec();
 	}
 	
 	return 0;
